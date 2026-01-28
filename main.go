@@ -30,14 +30,20 @@ func NewClient(conn *websocket.Conn) *Client {
 }
 
 type Server struct {
-	clients []*Client
-	mu      *sync.RWMutex
+	clients       map[string]*Client
+	mu            *sync.RWMutex
+	joinServerCh  chan *Client
+	leaveServerCh chan *Client
 }
 
 func NewServer() *Server {
 	return &Server{
-		clients: []*Client{},
-		mu:      new(sync.RWMutex)}
+		clients:       map[string]*Client{},
+		mu:            new(sync.RWMutex),
+		joinServerCh:  make(chan *Client, 64),
+		leaveServerCh: make(chan *Client, 64),
+	}
+
 }
 
 func (s *Server) handleWs(w http.ResponseWriter, r *http.Request) {
@@ -54,14 +60,32 @@ func (s *Server) handleWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := NewClient(conn)
-	s.mu.Lock()
-	s.clients = append(s.clients, client)
-	fmt.Println("clients count:", len(s.clients))
-	s.mu.Unlock()
+	s.joinServerCh <- client
+	// fmt.Println("clients count:", len(s.clients))
+}
+func (s *Server) joinServer(c *Client) {
+	s.clients[c.ID] = c
+	fmt.Printf("client joined the server, cId = %s\n", c.ID)
+}
+func (s *Server) leaveSever(c *Client) {
+	delete(s.clients, c.ID)
+	fmt.Printf("client left the server, cId = %s\n", c.ID)
+}
+
+func (s *Server) AcceptLoop() {
+	for {
+		select {
+		case c := <-s.joinServerCh:
+			s.joinServer(c)
+		case c := <-s.leaveServerCh:
+			s.leaveSever(c)
+		}
+	}
 }
 func createWSServer() {
 	s := NewServer()
-	fmt.Printf("Starting ws server on port %s\n", WSPort)
+	go s.AcceptLoop()
+	go fmt.Printf("Starting ws server on port %s\n", WSPort)
 	http.HandleFunc("/", s.handleWs)
 	log.Fatal(http.ListenAndServe(WSPort, nil))
 }
