@@ -5,8 +5,9 @@ type Stage string
 type Screen string
 
 const (
-	MsgType_JoinRoom  MsgType = "join_room"
-	MsgType_LeaveRoom MsgType = "leave_room"
+	MsgType_JoinRoom    MsgType = "join_room"
+	MsgType_LeaveRoom   MsgType = "leave_room"
+	MsgType_PlayersList MsgType = "players_list"
 )
 
 const (
@@ -26,4 +27,9 @@ type ReqMsg struct {
 	Player  *Player     `json:"player"`
 	Data    interface{} `json:"data"`
 	RoomID  string      `json:"roomID"`
+}
+
+type ResMsg struct {
+	MsgType MsgType     `json:"type"`
+	Data    interface{} `json:"data"`
 }

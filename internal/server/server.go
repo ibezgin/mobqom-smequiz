@@ -44,10 +44,10 @@ func (s *Server) HandleWs(gm *game.GameManager, w http.ResponseWriter, r *http.R
 }
 func (s *Server) HandleCreateRoom(gm *game.GameManager, w http.ResponseWriter, r *http.Request) {
 	newRoom := gm.CreateRoom()
+	fmt.Printf("Room created with ID: %s\n", newRoom.ID)
 	w.Header().Set("Content-Type", "application/json")
 	resp := NewRoomResponse{ID: newRoom.ID}
 	json.NewEncoder(w).Encode(resp)
-	fmt.Printf("Room created with ID: %s\n", newRoom.ID)
 }
 
 func (s *Server) AcceptLoop() {

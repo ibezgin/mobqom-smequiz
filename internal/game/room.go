@@ -3,10 +3,12 @@ package game
 import "sync"
 
 type Room struct {
-	ID      string
-	players map[string]*Player
-	Stage   Stage
-	mu      sync.Mutex
+	ID       string
+	players  map[string]*Player
+	Stage    Stage
+	mu       sync.Mutex
+	resMsgCh chan *ResMsg
+	reqMsgCh chan *ReqMsg
 }
 
 func NewRoom(id string) *Room {
@@ -25,4 +27,11 @@ func (r *Room) AddPlayer(p *Player) {
 
 func (r *Room) RemovePlayer(p *Player) {
 	delete(r.players, p.ID)
+}
+
+func (r *Room) ChangeStage(stage Stage) {
+	switch stage {
+	case Stage_Waiting, Stage_Active, Stage_Ended:
+		r.Stage = stage
+	}
 }

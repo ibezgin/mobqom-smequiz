@@ -32,7 +32,6 @@ func (p *Player) ReadMessage(gm *GameManager) error {
 		msg := new(ReqMsg)
 		json.Unmarshal(dt, msg)
 		msg.Player = p
-		fmt.Println(msg)
 
 		switch msg.MsgType {
 		case MsgType_JoinRoom:
@@ -43,7 +42,11 @@ func (p *Player) ReadMessage(gm *GameManager) error {
 	}
 }
 func (p *Player) joinRoom(gm *GameManager, msg *ReqMsg) {
-	room := gm.GetOrCreateRoom(msg.RoomID)
+	room, exist := gm.GetRoom(msg.RoomID)
+	if !exist {
+		fmt.Printf("Room %s does not exist\n", msg.RoomID)
+		return
+	}
 	room.AddPlayer(p)
 	fmt.Printf("Player %s joined room %s\n", p.ID, msg.RoomID)
 }

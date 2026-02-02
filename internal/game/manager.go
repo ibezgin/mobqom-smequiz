@@ -6,8 +6,10 @@ import (
 )
 
 type GameManager struct {
-	rooms map[string]*Room
-	mu    sync.Mutex
+	rooms        map[string]*Room
+	mu           sync.Mutex
+	createRoomCh chan *Room
+	deleteRoomCh chan *Room
 }
 
 func NewGameManager() *GameManager {
@@ -26,17 +28,6 @@ func (gm *GameManager) CreateRoom() *Room {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
 	gm.rooms[newRoom.ID] = newRoom
-	return newRoom
-}
-
-func (gm *GameManager) GetOrCreateRoom(roomID string) *Room {
-	if room, exists := gm.GetRoom(roomID); exists {
-		return room
-	}
-	newRoom := NewRoom(roomID)
-	gm.mu.Lock()
-	defer gm.mu.Unlock()
-	gm.rooms[roomID] = newRoom
 	return newRoom
 }
 
